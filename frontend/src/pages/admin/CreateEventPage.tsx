@@ -31,6 +31,7 @@ import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useTranslation } from 'react-i18next';
 import { ThemeConfig, GALLERY_THEME_PRESETS } from '../../types/theme.types';
 import { Code } from 'lucide-react';
+import { ARTEFAKT_DEFAULT_WELCOME } from '../../utils/artefaktTexts'; // artefakt fork
 
 interface FormData {
   event_type: string;
@@ -127,7 +128,7 @@ export const CreateEventPage: React.FC = () => {
     require_password: true,
     password: '',
     confirm_password: '',
-    welcome_message: '',
+    welcome_message: ARTEFAKT_DEFAULT_WELCOME, // artefakt fork
     theme_preset: 'elegantWedding',
     theme_config: GALLERY_THEME_PRESETS.elegantWedding.config,
     expires_in_days: 30,

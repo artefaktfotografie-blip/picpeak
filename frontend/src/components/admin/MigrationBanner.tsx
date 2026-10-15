@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 // Hard-coded "feature flag" — flip to false (or remove this component from
 // AdminLayout) once the migration window settles, after operators have had
 // ~1 quarter to update their docker-compose.yml. See #669.
-const MIGRATION_BANNER_ENABLED = true;
+// artefakt fork: our own image is built from the new registry path, so the notice never applies.
+const MIGRATION_BANNER_ENABLED = false;
 
 // localStorage key — versioned (`:v1`) so a future "we've moved again" banner
 // can show without inheriting the user's earlier dismissal.

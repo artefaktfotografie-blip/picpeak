@@ -5,6 +5,7 @@ import { fontsService, extractFamilyName, type FontDefinition } from '../service
 import { applyForceColorMode } from '../utils/themeMigration';
 import { getReadableForeground } from '../utils/contrast';
 import { usePublicSettings } from '../hooks/usePublicSettings';
+import { applyViewerPalette, getStoredPalette, onPaletteChange, isGalleryPath, type ArtefaktPalette } from '../utils/artefaktPalette'; // artefakt fork
 
 // Self-hosted font loader. Resolves the available-fonts list once (cached for
 // 5 minutes) and lazily injects @font-face blocks into <head> only for the
@@ -115,6 +116,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       ? 'light'
       : null;
 
+  // artefakt fork: the gallery visitor's background choice (aubergine /
+  // weiss / schwarz), laid over the event theme after the force mode.
+  const [viewerPalette, setViewerPalette] = useState<ArtefaktPalette | null>(() => getStoredPalette());
+  useEffect(() => onPaletteChange(setViewerPalette), []);
+
   const applyTheme = useCallback((rawThemeConfig: ThemeConfig) => {
     const root = document.documentElement;
 
@@ -124,7 +130,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     // applyForceColorMode is a no-op when forcedMode is null, and only
     // swaps surface/text tokens when the active theme doesn't natively
     // support the locked mode — accent CI colours are preserved either way.
-    const themeConfig = applyForceColorMode(rawThemeConfig, forcedMode);
+    const themeConfig = applyViewerPalette(applyForceColorMode(rawThemeConfig, forcedMode), viewerPalette);
+    // artefakt fork: Tailwind's dark: variants follow the chosen palette too.
+    if (viewerPalette && isGalleryPath()) {
+      root.classList.toggle('dark', themeConfig.colorMode === 'dark');
+    }
 
     // Apply CSS variables — 8-token CI palette.
     // Legacy --color-primary / --color-primary-light / --color-primary-dark
@@ -312,7 +322,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       }
       styleElement.textContent = themeConfig.customCss;
     }
-  }, [forcedMode]);
+  }, [forcedMode, viewerPalette]);
 
   const setThemeConfig = useCallback((newTheme: ThemeConfig) => {
     setTheme(newTheme);
@@ -381,15 +391,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return () => mql.removeEventListener('change', handler);
   }, [theme, applyTheme]);
 
+  // artefakt fork: consumers (e.g. light/dark logo choice) see the palette.
+  const effectiveTheme = useMemo(() => applyViewerPalette(theme, viewerPalette), [theme, viewerPalette]);
+
   const contextValue = useMemo(() => ({
-    theme,
+    theme: effectiveTheme,
     themeName,
     resolvedColorMode,
     setTheme: setThemeConfig,
     setThemeByName,
     applyTheme,
     resetTheme
-  }), [theme, themeName, resolvedColorMode, setThemeConfig, setThemeByName, applyTheme, resetTheme]);
+  }), [effectiveTheme, themeName, resolvedColorMode, setThemeConfig, setThemeByName, applyTheme, resetTheme]);
 
   return (
     <ThemeContext.Provider value={contextValue}>

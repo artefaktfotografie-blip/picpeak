@@ -12,6 +12,7 @@ import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
 import { buildResourceUrl } from '../../utils/url';
 import { cmsService, type PublicCMSPage } from '../../services/cms.service';
 import type { HeaderStyleType } from '../../types/theme.types';
+import { GalleryPaletteSwitcher } from './GalleryPaletteSwitcher'; // artefakt fork
 
 interface GalleryLayoutProps {
   event: {
@@ -411,6 +412,7 @@ export const GalleryLayout: React.FC<GalleryLayoutProps> = ({
               {/* Right side - Action buttons */}
               <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 {/* Extra header items (upload button, etc.) */}
+                <GalleryPaletteSwitcher />
                 {headerExtra}
                 
                 {/* Download all button - hidden on mobile when sidebar is shown */}
@@ -491,6 +493,7 @@ export const GalleryLayout: React.FC<GalleryLayoutProps> = ({
                 </h1>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
+                <GalleryPaletteSwitcher />
                 {headerExtra}
                 {showDownloadAll && onDownloadAll && (
                   <Button
@@ -536,6 +539,7 @@ export const GalleryLayout: React.FC<GalleryLayoutProps> = ({
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 {menuButton}
+                <GalleryPaletteSwitcher />
                 {headerExtra}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -585,6 +589,7 @@ export const GalleryLayout: React.FC<GalleryLayoutProps> = ({
               {/* Left side - Menu button */}
               <div className="flex items-center gap-3">
                 {menuButton}
+                <GalleryPaletteSwitcher />
                 {headerExtra}
               </div>
 
