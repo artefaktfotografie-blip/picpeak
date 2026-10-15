@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { FeedbackIdentityModal } from './FeedbackIdentityModal';
 import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
 import { useFeedbackLimitModal } from '../../hooks/useFeedbackLimitModal';
+import { useRememberedGuestIdentity } from '../../hooks/useRememberedGuestIdentity'; // artefakt fork
 
 interface PhotoFavoritesProps {
   photoId: string;
@@ -37,7 +38,7 @@ export const PhotoFavorites: React.FC<PhotoFavoritesProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [showIdentityModal, setShowIdentityModal] = useState(false);
-  const [savedIdentity, setSavedIdentity] = useState<{ name: string; email: string } | null>(null);
+  const [savedIdentity, setSavedIdentity] = useRememberedGuestIdentity(gallerySlug); // artefakt fork: ask once per gallery
 
   const submitFavoriteMutation = useMutation({
     // The photo travels with the call. The function and the callbacks below

@@ -19,11 +19,12 @@ import { safeParseDate } from './event-details/utils';
 import { INITIAL_EDIT_FORM, type EditFormState, type EventDetailsTab } from './event-details/types';
 import { EventDetailsHeader } from './event-details/EventDetailsHeader';
 import { EventTabs } from './event-details/EventTabs';
+import { AnnotationsTab } from './event-details/AnnotationsTab'; // artefakt fork
 import { OverviewTab } from './event-details/OverviewTab';
 import { PhotosTab } from './event-details/PhotosTab';
 import { CategoriesTab } from './event-details/CategoriesTab';
 
-const ALL_TAB_KEYS: EventDetailsTab[] = ['overview', 'photos', 'categories', 'guests'];
+const ALL_TAB_KEYS: EventDetailsTab[] = ['overview', 'photos', 'categories', 'guests', 'annotations'];
 
 function isValidTab(value: string | null): value is EventDetailsTab {
   return value !== null && (ALL_TAB_KEYS as string[]).includes(value);
@@ -192,7 +193,7 @@ export const EventDetailsPage: React.FC = () => {
   const { data: photos = [], isLoading: photosLoading, isError: photosError, refetch: refetchPhotos } = useQuery({
     queryKey: ['admin-event-photos', id, combinedPhotoFilters],
     queryFn: () => photosService.getEventPhotos(parseInt(id!), combinedPhotoFilters),
-    enabled: !!id && (activeTab === 'photos' || isEditing),
+    enabled: !!id && (activeTab === 'photos' || activeTab === 'annotations' || isEditing),
     refetchInterval: (query) => {
       const data = query.state.data as AdminPhoto[] | undefined;
       if (!Array.isArray(data)) return false;
@@ -765,6 +766,11 @@ export const EventDetailsPage: React.FC = () => {
           filterSummary={filterSummary}
           showMediaFilter={showMediaFilter}
         />
+      )}
+
+      {/* artefakt fork: pen annotations */}
+      {activeTab === 'annotations' && (
+        <AnnotationsTab eventId={id!} photos={photos} />
       )}
 
       {/* Categories Tab */}

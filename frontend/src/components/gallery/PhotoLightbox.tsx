@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 're
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useDevToolsProtection } from '../../hooks/useDevToolsProtection';
-import { X, ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut, Minimize2, MessageSquare, Heart, Star } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut, Minimize2, MessageSquare, Heart, Star, PenLine } from 'lucide-react';
 import type { Photo, GalleryPerson } from '../../types';
 import { useSavePhotoToDevice } from '../../hooks/useGallery';
 import { AuthenticatedImage } from '../common';
@@ -17,6 +17,8 @@ import { FeedbackIdentityModal } from './FeedbackIdentityModal';
 import { VideoPlayer } from './VideoPlayer';
 import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
 import { useFeedbackLimitModal } from '../../hooks/useFeedbackLimitModal';
+import { useRememberedGuestIdentity } from '../../hooks/useRememberedGuestIdentity'; // artefakt fork
+import { PhotoAnnotator } from './PhotoAnnotator'; // artefakt fork
 
 interface PhotoLightboxProps {
   photos: Photo[];
@@ -109,9 +111,14 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   const [likeCount, setLikeCount] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [totalRatings, setTotalRatings] = useState<number>(0);
-  const [savedIdentity, setSavedIdentity] = useState<{ name: string; email: string } | null>(null);
+  const [savedIdentity, setSavedIdentity] = useRememberedGuestIdentity(slug); // artefakt fork: ask once per gallery
   const [showIdentityModal, setShowIdentityModal] = useState(false);
-  const [pendingAction, setPendingAction] = useState<null | { type: 'like' | 'rating' | 'color_label'; rating?: number; color?: ColorLabel }>(null);
+  const [pendingAction, setPendingAction] = useState<null | { type: 'like' | 'rating' | 'color_label' | 'annotation'; rating?: number; color?: ColorLabel }>(null);
+  // artefakt fork: the photo open in the pen tool, if any. A snapshot, so
+  // the tool keeps its photo even if the lightbox index changes behind it.
+  const [annotatorPhoto, setAnnotatorPhoto] = useState<Photo | null>(null);
+  const annotatorOpenRef = useRef(false);
+  annotatorOpenRef.current = annotatorPhoto !== null;
   const guestIdentity = useGuestIdentityOptional();
   const isGuestMode = guestIdentity?.identityMode === 'guest';
   // Which shortcut scheme this gallery uses (#1044).
@@ -244,6 +251,8 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   });
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // artefakt fork: the pen tool owns the keyboard while it is open.
+      if (annotatorOpenRef.current) return;
       switch (e.key) {
         case 'Escape':
           onClose();
@@ -466,6 +475,26 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
     // Sync gallery photo list so the Rated filter reflects this rating
     // without a reload (parity with the guest-mode path above).
     if (onFeedbackChange) onFeedbackChange();
+  };
+
+  // artefakt fork: open the pen tool, asking for name/email first when the
+  // gallery requires it (same identity rules as comments).
+  const openAnnotator = async () => {
+    if (isGuestMode && guestIdentity) {
+      try {
+        await guestIdentity.ensureIdentity();
+      } catch {
+        return;
+      }
+      setAnnotatorPhoto(currentPhoto);
+      return;
+    }
+    if (feedbackSettings?.require_name_email && !savedIdentity) {
+      setPendingAction({ type: 'annotation' });
+      setShowIdentityModal(true);
+      return;
+    }
+    setAnnotatorPhoto(currentPhoto);
   };
 
   /**
@@ -1074,6 +1103,18 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
               </div>
             )}
 
+            {/* artefakt fork: pen tool to mark areas of the photo. */}
+            {feedbackEnabled && feedbackSettings?.allow_comments && currentPhoto.media_type !== 'video' && (
+              <button
+                onClick={openAnnotator}
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                aria-label="Im Bild markieren"
+                title="Im Bild markieren"
+              >
+                <PenLine className="w-5 h-5 text-white" />
+              </button>
+            )}
+
             {/* Feedback button with indicator. Likes/ratings have their
                 own dedicated toolbar buttons above, so this panel toggle
                 only has work to do when comments (#518) or the emoji
@@ -1332,6 +1373,11 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
               setAvgRating(Number(fresh.summary?.average_rating) || 0);
               setTotalRatings(Number(fresh.summary?.total_ratings) || 0);
             } catch {}
+          } else if (pendingAction?.type === 'annotation') {
+            // artefakt fork: identity given, now open the pen tool.
+            setAnnotatorPhoto(currentPhoto);
+            setPendingAction(null);
+            return;
           } else if (pendingAction?.type === 'color_label' && pendingAction.color) {
             try {
               await feedbackService.submitFeedback(slug, String(currentPhoto.id), {
@@ -1353,12 +1399,22 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
         feedbackType={
           pendingAction?.type === 'rating' ? 'rating'
             : pendingAction?.type === 'color_label' ? 'color label'
-              : 'like'
+              : pendingAction?.type === 'annotation' ? 'Markierungen'
+                : 'like'
         }
       />
       {/* Per-guest cap modal (#655). Single instance fires for any of the
           lightbox's submitFeedback paths via the shared hook. */}
       {limitModal}
+      {/* artefakt fork: pen tool */}
+      {annotatorPhoto && (
+        <PhotoAnnotator
+          photo={annotatorPhoto}
+          slug={slug}
+          identity={savedIdentity}
+          onClose={() => setAnnotatorPhoto(null)}
+        />
+      )}
     </div>
   );
 };

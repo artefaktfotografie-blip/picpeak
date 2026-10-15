@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image } from 'lucide-react';
+import { Image, PenLine } from 'lucide-react';
 import type { Event } from '../../../types';
 import type { FeedbackSettings as FeedbackSettingsType } from '../../../services/feedback.service';
 import type { EventDetailsTab } from './types';
@@ -58,6 +58,18 @@ export const EventTabs: React.FC<EventTabsProps> = ({
           }`}
         >
           {t('events.categories')}
+        </button>
+        {/* artefakt fork: pen annotations */}
+        <button
+          onClick={() => setActiveTab('annotations')}
+          className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+            activeTab === 'annotations'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 hover:border-neutral-300 dark:hover:border-neutral-600'
+          }`}
+        >
+          <PenLine className="w-4 h-4" />
+          <span>Markierungen</span>
         </button>
         {eventFeedbackSettings?.identity_mode === 'guest' && (
           <button

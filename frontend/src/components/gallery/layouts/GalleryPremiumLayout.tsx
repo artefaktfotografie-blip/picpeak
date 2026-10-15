@@ -34,6 +34,7 @@ import { toast } from 'react-toastify';
 import './GalleryPremiumLayout.css';
 import { lightboxImageUrl } from '../imageTiers';
 import { renderPremiumLightboxImage } from './PremiumLightboxImage';
+import { useRememberedGuestIdentity } from '../../../hooks/useRememberedGuestIdentity'; // artefakt fork
 
 interface PhotoCardProps {
   photo: Photo;
@@ -241,7 +242,7 @@ export const GalleryPremiumLayout: React.FC<GalleryPremiumLayoutProps> = ({
     setLikedPhotoIds(new Set(photos.filter(p => p.is_liked).map(p => p.id)));
     likedSeededRef.current = true;
   }, [photos]);
-  const [savedIdentity, setSavedIdentity] = useState<{ name: string; email: string } | null>(null);
+  const [savedIdentity, setSavedIdentity] = useRememberedGuestIdentity(slug); // artefakt fork: ask once per gallery
   // Emoji reactions (#839) inside the premium lightbox. This layout uses
   // yet-another-react-lightbox instead of the shared PhotoLightbox, so the
   // reaction bar is a fixed overlay fed by its own per-photo fetch.

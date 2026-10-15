@@ -1,4 +1,4 @@
-export type EventDetailsTab = 'overview' | 'photos' | 'categories' | 'guests';
+export type EventDetailsTab = 'overview' | 'photos' | 'categories' | 'guests' | 'annotations'; // 'annotations': artefakt fork
 
 export type EditFormState = {
   welcome_message: string;

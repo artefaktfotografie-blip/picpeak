@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { Button, Input } from '../common';
 import type { PhotoFeedback } from '../../services/feedback.service';
 import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
+import { useRememberedGuestIdentity } from '../../hooks/useRememberedGuestIdentity'; // artefakt fork
 
 interface PhotoCommentsProps {
   photoId: string;
@@ -34,8 +35,10 @@ export const PhotoComments: React.FC<PhotoCommentsProps> = ({
   const isGuestMode = guestIdentity?.identityMode === 'guest';
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [commentText, setCommentText] = useState('');
-  const [guestName, setGuestName] = useState('');
-  const [guestEmail, setGuestEmail] = useState('');
+  // artefakt fork: prefill from (and remember) the gallery-wide identity.
+  const [rememberedIdentity, setRememberedIdentity] = useRememberedGuestIdentity(gallerySlug);
+  const [guestName, setGuestName] = useState(rememberedIdentity?.name || '');
+  const [guestEmail, setGuestEmail] = useState(rememberedIdentity?.email || '');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -116,6 +119,9 @@ export const PhotoComments: React.FC<PhotoCommentsProps> = ({
       return;
     }
 
+    if (guestName.trim() && guestEmail.trim()) {
+      setRememberedIdentity({ name: guestName.trim(), email: guestEmail.trim() }); // artefakt fork
+    }
     submitCommentMutation.mutate({
       comment_text: commentText.trim(),
       guest_name: guestName.trim() || undefined,

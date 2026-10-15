@@ -5,6 +5,7 @@ import { feedbackService, REACTION_EMOJIS } from '../../services/feedback.servic
 import { toast } from 'react-toastify';
 import { FeedbackIdentityModal } from './FeedbackIdentityModal';
 import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
+import { useRememberedGuestIdentity } from '../../hooks/useRememberedGuestIdentity'; // artefakt fork
 
 interface PhotoReactionsProps {
   photoId: string;
@@ -36,7 +37,7 @@ export const PhotoReactions: React.FC<PhotoReactionsProps> = ({
   const guestIdentity = useGuestIdentityOptional();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showIdentityModal, setShowIdentityModal] = useState(false);
-  const [savedIdentity, setSavedIdentity] = useState<{ name: string; email: string } | null>(null);
+  const [savedIdentity, setSavedIdentity] = useRememberedGuestIdentity(gallerySlug); // artefakt fork: ask once per gallery
   const [pendingEmoji, setPendingEmoji] = useState<string | null>(null);
 
   const submitReactionMutation = useMutation({

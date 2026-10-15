@@ -6,6 +6,7 @@ import { feedbackService } from '../../services/feedback.service';
 import { toast } from 'react-toastify';
 import { FeedbackIdentityModal } from './FeedbackIdentityModal';
 import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
+import { useRememberedGuestIdentity } from '../../hooks/useRememberedGuestIdentity'; // artefakt fork
 
 interface PhotoRatingProps {
   photoId: string;
@@ -37,7 +38,7 @@ export const PhotoRating: React.FC<PhotoRatingProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showIdentityModal, setShowIdentityModal] = useState(false);
   const [pendingRating, setPendingRating] = useState(0);
-  const [savedIdentity, setSavedIdentity] = useState<{ name: string; email: string } | null>(null);
+  const [savedIdentity, setSavedIdentity] = useRememberedGuestIdentity(gallerySlug); // artefakt fork: ask once per gallery
 
   const submitRatingMutation = useMutation({
     mutationFn: (data: { rating: number; guest_name?: string; guest_email?: string }) => 
