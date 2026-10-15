@@ -1,12 +1,12 @@
 # artefakt fork: build the all-in-one image for the Ugreen NAS and publish it
 # to GitHub Container Registry as ghcr.io/<owner>/picpeak-artefakt.
-#   :latest  – newest build from main
+#   :latest  – newest build from the artefakt branch
 #   :<sha>   – every build, to roll back to an exact version
 name: artefakt image
 
 on:
   push:
-    branches: [main]
+    branches: [artefakt]
   workflow_dispatch:
 
 permissions:
