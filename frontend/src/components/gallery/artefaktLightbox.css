@@ -1,0 +1,18 @@
+/* artefakt fork: the lightbox and pen tool are drawn white-on-dark. On the
+   white gallery palette, flip those utilities to dark-on-light. */
+.artefakt-lb-light .text-white,
+.artefakt-lb-light .text-white\/90,
+.artefakt-lb-light .text-white\/70,
+.artefakt-lb-light .text-white\/60 { color: var(--color-text) !important; }
+.artefakt-lb-light .placeholder-white\/40::placeholder { color: var(--color-muted-text) !important; }
+.artefakt-lb-light .bg-white\/10,
+.artefakt-lb-light .bg-white\/15,
+.artefakt-lb-light .bg-black\/40 { background-color: rgba(0, 0, 0, 0.06) !important; }
+.artefakt-lb-light .hover\:bg-white\/20:hover,
+.artefakt-lb-light .hover\:bg-white\/25:hover,
+.artefakt-lb-light .hover\:bg-black\/60:hover { background-color: rgba(0, 0, 0, 0.12) !important; }
+.artefakt-lb-light .border-white\/40,
+.artefakt-lb-light .border-white\/30,
+.artefakt-lb-light .border-white\/15,
+.artefakt-lb-light .border-white\/10 { border-color: rgba(0, 0, 0, 0.18) !important; }
+.artefakt-lb-light .bg-white\/20 { background-color: rgba(0, 0, 0, 0.15) !important; }

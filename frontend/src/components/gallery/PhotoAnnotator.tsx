@@ -9,6 +9,8 @@ import type { Photo } from '../../types';
 import { AuthenticatedImage } from '../common';
 import { lightboxImageUrl } from './imageTiers';
 import { AnnotationOverlay } from './AnnotationOverlay';
+import { useTheme } from '../../contexts/ThemeContext';
+import './artefaktLightbox.css';
 import {
   annotationService,
   type AnnotationColor,
@@ -63,6 +65,7 @@ interface PhotoAnnotatorProps {
 
 export const PhotoAnnotator: React.FC<PhotoAnnotatorProps> = ({ photo, slug, identity, onClose, onSaved }) => {
   const { i18n } = useTranslation();
+  const { theme: paletteTheme } = useTheme();
   const lang = i18n.language?.startsWith('de') ? 'de' : 'en';
   const txt = TEXT[lang];
 
@@ -198,7 +201,8 @@ export const PhotoAnnotator: React.FC<PhotoAnnotatorProps> = ({ photo, slug, ide
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex flex-col bg-black text-white"
+      className={`fixed inset-0 z-[60] flex flex-col text-white${paletteTheme.colorMode === 'light' ? ' artefakt-lb-light' : ''}`}
+      style={{ backgroundColor: 'var(--color-background, #000)' }}
       role="dialog"
       aria-modal="true"
       aria-label={txt.title}

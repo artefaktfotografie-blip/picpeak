@@ -19,6 +19,9 @@ import { useGuestIdentityOptional } from '../../contexts/GuestIdentityContext';
 import { useFeedbackLimitModal } from '../../hooks/useFeedbackLimitModal';
 import { useRememberedGuestIdentity } from '../../hooks/useRememberedGuestIdentity'; // artefakt fork
 import { PhotoAnnotator } from './PhotoAnnotator'; // artefakt fork
+import { useTheme } from '../../contexts/ThemeContext'; // artefakt fork
+import './artefaktLightbox.css'; // artefakt fork
+import { GalleryPaletteSwitcher } from './GalleryPaletteSwitcher'; // artefakt fork
 
 interface PhotoLightboxProps {
   photos: Photo[];
@@ -118,6 +121,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   // the tool keeps its photo even if the lightbox index changes behind it.
   const [annotatorPhoto, setAnnotatorPhoto] = useState<Photo | null>(null);
   const annotatorOpenRef = useRef(false);
+  const { theme: paletteTheme } = useTheme(); // artefakt fork
   annotatorOpenRef.current = annotatorPhoto !== null;
   const guestIdentity = useGuestIdentityOptional();
   const isGuestMode = guestIdentity?.identityMode === 'guest';
@@ -875,9 +879,13 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
     : null;
 
   // Apply protection class to the lightbox container
-  const lightboxClass = useEnhancedProtection ? 
-    `fixed inset-0 bg-black z-50 flex items-center justify-center protected-image protection-${protectionLevel}` :
-    'fixed inset-0 bg-black z-50 flex items-center justify-center';
+  // artefakt fork: background follows the gallery palette (aubergine /
+  // weiss / schwarz) instead of fixed black; `artefakt-lb-light` flips the
+  // white-on-dark controls for the white palette (see artefaktLightbox.css).
+  const lightboxClass = (useEnhancedProtection ?
+    `fixed inset-0 z-50 flex items-center justify-center protected-image protection-${protectionLevel}` :
+    'fixed inset-0 z-50 flex items-center justify-center')
+    + (paletteTheme.colorMode === 'light' ? ' artefakt-lb-light' : '');
 
   // Empty list (last photo dropped out of the current filter): the effect
   // above is about to close the lightbox — render nothing meanwhile.
@@ -889,7 +897,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   const isDesktopFeedback = showFeedback && !isSmallScreen;
 
   return (
-    <div className={lightboxClass}>
+    <div className={lightboxClass} style={{ backgroundColor: 'var(--color-background, #000)' }}>
       {/* Close button. top respects iOS safe-area (notch) so it doesn't
          disappear under the camera/dynamic-island. */}
       <button
@@ -932,8 +940,9 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
          (#888). */}
       <div
         ref={toolbarRef}
-        className="absolute bottom-0 left-0 bg-black px-3 pt-3 pb-3 sm:p-4 z-20"
+        className="absolute bottom-0 left-0 px-3 pt-3 pb-3 sm:p-4 z-20"
         style={{
+          backgroundColor: 'var(--color-background, #000)', // artefakt fork
           right: isDesktopFeedback ? `${desktopFeedbackWidth}px` : 0,
           paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))'
         }}
@@ -990,6 +999,8 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
+            {/* artefakt fork: switch the background while viewing photos */}
+            <GalleryPaletteSwitcher />
             <button
               onClick={handleZoomOut}
               disabled={zoom <= 1}
