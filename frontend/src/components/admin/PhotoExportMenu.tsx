@@ -20,7 +20,45 @@ interface PhotoExportMenuProps {
   disabled?: boolean;
 }
 
-const EXPORT_FORMATS = [
+type ExportFormatValue = 'txt' | 'csv' | 'xmp' | 'json';
+
+// artefakt fork: zwei zusätzliche TXT-Varianten für Capture One. Sie nutzen
+// den bestehenden TXT-Export, nur mit anderem Trennzeichen und Dateinamen.
+type MenuEntry = {
+  value: ExportFormatValue;
+  key?: string;
+  label: string;
+  description: string;
+  icon: typeof FileText;
+  separator?: 'newline' | 'space';
+  downloadName?: string;
+  previewTitle?: string;
+  previewHelp?: string;
+};
+
+const EXPORT_FORMATS: MenuEntry[] = [
+  {
+    value: 'txt',
+    key: 'capture-one',
+    label: 'Capture One (Suche)',
+    description: 'Dateinamen ohne Endung, durch Leerzeichen getrennt',
+    icon: FileText,
+    separator: 'space',
+    downloadName: 'auswahl-capture-one.txt',
+    previewTitle: 'Auswahl für Capture One',
+    previewHelp: 'In Capture One ins Suchfeld oder in den Filter eines Smart-Albums einfügen. Die Namen sind ohne Endung und durch Leerzeichen getrennt, damit sie auch zu den RAW-Dateien passen.',
+  },
+  {
+    value: 'txt',
+    key: 'lines',
+    label: 'Dateinamen-Liste (TXT)',
+    description: 'Ein Name pro Zeile, ohne Endung',
+    icon: FileText,
+    separator: 'newline',
+    downloadName: 'auswahl-dateinamen.txt',
+    previewTitle: 'Dateinamen-Liste',
+    previewHelp: 'Ein Dateiname pro Zeile, ohne Endung.',
+  },
   {
     value: 'txt',
     label: 'Filename List (TXT)',
@@ -59,6 +97,8 @@ export const PhotoExportMenu: React.FC<PhotoExportMenuProps> = ({
     format: 'txt' | 'csv';
     content: string;
     filename: string;
+    title?: string;
+    help?: string;
   } | null>(null);
 
   const exportMutation = useMutationWithToast({
@@ -71,9 +111,13 @@ export const PhotoExportMenu: React.FC<PhotoExportMenuProps> = ({
   });
 
   const previewMutation = useMutation({
-    mutationFn: ({ options, format }: { options: ExportOptions; format: 'txt' | 'csv' }) =>
+    mutationFn: ({ options, format, entry }: { options: ExportOptions; format: 'txt' | 'csv'; entry: MenuEntry }) =>
       photosService.exportPhotosAsText(eventId, options).then((result) => ({
         ...result,
+        // artefakt fork: Dateiname, Titel und Hinweis für die Capture-One-Varianten
+        filename: entry.downloadName ?? result.filename,
+        title: entry.previewTitle,
+        help: entry.previewHelp,
         format,
       })),
     onSuccess: (result) => {
@@ -89,7 +133,8 @@ export const PhotoExportMenu: React.FC<PhotoExportMenuProps> = ({
   // client's selections, so existing exports are unchanged.
   const [markSource, setMarkSource] = useState<'client' | 'mine'>('client');
 
-  const handleExport = (format: 'txt' | 'csv' | 'xmp' | 'json') => {
+  const handleExport = (entry: MenuEntry) => {
+    const format = entry.value;
     const options: ExportOptions = {
       format,
       options: {
@@ -98,7 +143,7 @@ export const PhotoExportMenu: React.FC<PhotoExportMenuProps> = ({
         // search field takes one comma-separated line, and the gallery
         // JPEGs may correspond to RAW files in the catalog so the search
         // has to match on the stem only (issue #623).
-        ...(format === 'txt' ? { separator: 'comma' as const, include_extension: false } : {}),
+        ...(format === 'txt' ? { separator: entry.separator ?? ('comma' as const), include_extension: false } : {}),
         include_rating: true,
         include_label: true,
         include_description: true,
@@ -131,7 +176,7 @@ export const PhotoExportMenu: React.FC<PhotoExportMenuProps> = ({
     }
 
     if ((PREVIEW_FORMATS as readonly string[]).includes(format)) {
-      previewMutation.mutate({ options, format: format as 'txt' | 'csv' });
+      previewMutation.mutate({ options, format: format as 'txt' | 'csv', entry });
     } else {
       exportMutation.mutate(options);
     }
@@ -217,8 +262,8 @@ export const PhotoExportMenu: React.FC<PhotoExportMenuProps> = ({
                 const Icon = format.icon;
                 return (
                   <button
-                    key={format.value}
-                    onClick={() => handleExport(format.value as 'txt' | 'csv' | 'xmp' | 'json')}
+                    key={format.key ?? format.value}
+                    onClick={() => handleExport(format)}
                     disabled={isWorking}
                     className="w-full flex items-start gap-3 px-3 py-2 rounded-md hover:bg-neutral-50 dark:hover:bg-neutral-700 text-left transition-colors"
                   >
@@ -250,6 +295,8 @@ export const PhotoExportMenu: React.FC<PhotoExportMenuProps> = ({
           format={preview.format}
           content={preview.content}
           filename={preview.filename}
+          title={preview.title}
+          help={preview.help}
           onClose={() => setPreview(null)}
         />
       )}

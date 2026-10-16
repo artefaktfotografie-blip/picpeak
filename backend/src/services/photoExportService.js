@@ -173,6 +173,10 @@ class PhotoExportService {
     case 'semicolon':
       content = filenames.join(';');
       break;
+    // artefakt fork: Capture One – Namen ohne Endung, durch Leerzeichen getrennt
+    case 'space':
+      content = filenames.join(' ');
+      break;
     default:
       content = filenames.join('\n');
     }

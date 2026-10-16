@@ -454,7 +454,7 @@ export interface ExportOptions {
   format: 'txt' | 'csv' | 'xmp' | 'json';
   options?: {
     filename_format?: 'original' | 'picpeak';
-    separator?: 'newline' | 'comma' | 'semicolon';
+    separator?: 'newline' | 'comma' | 'semicolon' | 'space'; // artefakt fork: 'space' für Capture One
     include_extension?: boolean;
     include_rating?: boolean;
     include_label?: boolean;

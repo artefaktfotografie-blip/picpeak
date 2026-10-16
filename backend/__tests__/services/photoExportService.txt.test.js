@@ -68,4 +68,13 @@ describe('exportAsTxt (issue #623)', () => {
     );
     expect(result.content).toBe('shoot.final');
   });
+
+  // artefakt fork: Capture One
+  it('space separator joins stems with single spaces (Capture One)', () => {
+    const result = service.exportAsTxt(PHOTOS, {
+      separator: 'space',
+      include_extension: false,
+    });
+    expect(result.content).toBe('IMG_0001 IMG_0002 shoot.final fallback');
+  });
 });

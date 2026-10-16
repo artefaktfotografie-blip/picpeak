@@ -9,6 +9,9 @@ interface ExportPreviewModalProps {
   content: string;
   filename: string;
   onClose: () => void;
+  // artefakt fork: eigener Titel/Hinweis für die Capture-One-Varianten
+  title?: string;
+  help?: string;
 }
 
 /**
@@ -30,6 +33,8 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
   content,
   filename,
   onClose,
+  title,
+  help,
 }) => {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -78,7 +83,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
       <Card className="max-w-2xl w-full">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
-            {t(titleKey, titleDefault)}
+            {title ?? t(titleKey, titleDefault)}
           </h2>
           <button
             onClick={onClose}
@@ -90,7 +95,7 @@ export const ExportPreviewModal: React.FC<ExportPreviewModalProps> = ({
         </div>
 
         <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-          {t(helpKey, helpDefault)}
+          {help ?? t(helpKey, helpDefault)}
         </p>
 
         <textarea
